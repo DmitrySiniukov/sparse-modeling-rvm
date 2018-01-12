@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[340]:
+# In[1]:
 
 
 # Import of packages
@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import math
 
 
-# In[364]:
+# In[89]:
 
 
 def kernel(x, y, typeKer = "linear", p = 4, sigma = 0.5, kappa = 0.1, delta = 0.2):
@@ -27,7 +27,7 @@ def kernel(x, y, typeKer = "linear", p = 4, sigma = 0.5, kappa = 0.1, delta = 0.
     return k
 
 
-# In[365]:
+# In[283]:
 
 
 def lagrange(params, eps, X, t, K):
@@ -40,10 +40,10 @@ def lagrange(params, eps, X, t, K):
     return L   
 
 
-# In[366]:
+# In[293]:
 
 
-N = 50
+N = 100
 tr = 0.6
 ts = 0.4
 N_tr = int(N*tr)
@@ -56,7 +56,7 @@ x_ts = x[N_ts:N]
 y_ts = y[N_ts:N]
 
 
-# In[367]:
+# In[294]:
 
 
 plt.plot(x,y, 'ro')
@@ -65,11 +65,11 @@ plt.ylabel('Y')
 plt.show()
 
 
-# In[458]:
+# In[295]:
 
 
-eps = 1.47
-C = 0.19
+eps = 0.5
+C = 100
 initial = np.zeros(2*N_tr)
 K = np.zeros((N_tr,N_tr))
 for i in range(N_tr):
@@ -80,16 +80,17 @@ bounds = []
 for i in range(0,2*N_tr):
     bounds.append((0,C))
     
-def constraint(values):
-    N2 = np.shape(values)[0]
+def constraint(params):
+    N2 = np.shape(params)[0]
     N = int(N2/2)
-    a = values[0:N].reshape((N,1))
-    a_hat = values[N:N2].reshape((N,1))
-    return np.sum(a - a_hat) 
+    a = params[0:N]
+    a_hat = params[N:N2]
+    return np.sum(a - a_hat)
 
-cons = {'type':'eq', 'fun':constraint}
+cons = {'type':'eq', 'fun': constraint}
 
 final = optimize.minimize(lagrange, initial, args, bounds=bounds, constraints=cons, method='SLSQP')
+print(final.success)
 a = final.x[0:N_tr]
 a_hat = final.x[N_tr:2*N_tr]
 for i in range(0,N_tr):
@@ -98,16 +99,14 @@ for i in range(0,N_tr):
         ind = i
         break
 b = tn - eps - (a - a_hat).T.dot(K)[ind]
-cond_valuable = (a - a_hat) > 1e-15
+cond_valuable = abs((a - a_hat)) > 1e-10
 a = a[cond_valuable]
 a_hat = a_hat[cond_valuable]
 x_sv = x_tr[cond_valuable]
-print(a)
-print(a_hat)
-print(np.sum(a-a_hat))
+print(len(a))
 
 
-# In[459]:
+# In[296]:
 
 
 def pred(a, a_hat, b, x_sv, x_ts, kernel):
@@ -130,40 +129,16 @@ def pred(a, a_hat, b, x_sv, x_ts, kernel):
     
 
 
-# In[460]:
+# In[297]:
 
 
 y_pred = pred(a, a_hat, b, x_sv, x_ts, kernel)
 
 
-# In[461]:
+# In[298]:
 
 
 plt.plot(x_ts, y_ts,'ro')
 plt.plot(x_ts, y_pred, 'bo')
 plt.show()
-
-
-# In[462]:
-
-
-(y_pred[N_ts]-y_pred[0]) / (x_ts[N_ts] - x_ts[0])
-
-
-# In[296]:
-
-
-(y_ts[N_ts]-y_ts[0]) / (x_ts[N_ts] - x_ts[0])
-
-
-# In[268]:
-
-
-200/3
-
-
-# In[398]:
-
-
-np.sqrt(np.var(x))
 
