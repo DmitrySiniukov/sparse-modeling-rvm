@@ -22,14 +22,14 @@ class ParameterValueError(Exception):
     pass
 
 
-# In[2]:
+# In[3]:
 
 
 # RVM class
-class RVM:
+class RVM_reg:
     """ Relevance Vector Machine (RVM)
     
-    Implementation of RVM for both regression and classification.
+    Implementation of RVM for regression.
     
     Attributes:
         kerType: A string of the type of the desired kernel.
@@ -360,7 +360,8 @@ class RVM:
             X: matrix with input data where each row represents a sample.
             
         Returns:
-            y: vector with the predicted class for each input sample.
+            y: A tuple with vector with the predicted class for each input sample
+                and the error variance.
             
         Raises:
             UntrainedModelError: Error that occurs when this function is called

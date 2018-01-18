@@ -36,11 +36,11 @@ class UntrainedModelError(Exception):
     pass
 
 
-# In[1566]:
+# In[1]:
 
 
 # SVM class
-class SVM:
+class SVM_reg:
     """ Support Vector Machine (SVM) for regression.
     
     Implementation of SVM for regression with an option to use
