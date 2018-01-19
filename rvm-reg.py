@@ -5,6 +5,7 @@
 # TODO Convert to classification algorithm
 import numpy as np
 import math
+import matplotlib.pyplot as plt
 
 def linearBasisFunction(datapoint):
     return datapoint
@@ -184,13 +185,11 @@ def calculateMarginalLogLikelihood(alphaVec, beta, designMatrix, t):
     logProb += np.transpose(t)*np.linalg.inv(likelihoodCov)*t
     logProb += N*np.log(2*math.pi)
     logProb *=-1/2
+    print("Updated marginal likelihood:")
+    print(logProb)
     return logProb
 
 def convergenceReached(newLogProb,oldLogProb):
-    print("newLogProb:")
-    print(newLogProb.shape)
-    print("oldLogProb:")
-    print(oldLogProb)
     return newLogProb/oldLogProb < math.pow(10,-6)
 
 def optimizeMarginalLikelihoodParams(dataset, t, kernelType):
@@ -205,11 +204,11 @@ def optimizeMarginalLikelihoodParams(dataset, t, kernelType):
     newLogLikelihood = 1.
     while True:
         for i in range(len(alphaVec)):
-            if convergenceReached(newLogLikelihood,oldLogLikelihood):
-                usdAlphaVec, usdDsgnMtx = filterOutInf(alphaVec,designMatrix)
-                return usdAlphaVec, beta, usdDsgnMtx
-
             posteriorMean, posteriorCov = getPosteriorMeanAndCov(alphaVec,beta,designMatrix,t)
+
+            if convergenceReached(newLogLikelihood,oldLogLikelihood):
+                return posteriorMean, posteriorCov
+
             oldAlphaVec = alphaVec
 
             qi, si = getqiAndsi(alphaVec, beta, designMatrix,posteriorCov,t,i)
@@ -229,10 +228,13 @@ def main():
     trainingDataset = np.linspace(-2,2,20)
     t = createLabels(trainingDataset)
 
-    alphaVec, beta, designMatrix = optimizeMarginalLikelihoodParams(trainingDataset,t,"pol")
+    posteriorMean, posteriorCov = optimizeMarginalLikelihoodParams(trainingDataset,t,"pol")
     testingDataset = np.linspace(-4,4,100)
     testingLabels = createLabels(testingDataset)
-    modelPredictions = [np.dot()]
+    kernelizedData = createDesignMatrixKernel(testingDataset,"pol")
+    modelPredictions = [np.dot(posteriorMean.T,kernelizedData)]
+
+    plt.plot(testingDataset,testingLabels,color='blue')
 
 
 
