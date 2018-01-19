@@ -163,19 +163,78 @@ def genBoston(norm = True):
         X_ts = (X_ts - mean) / (2 * std + eps)
     return X_tr, Y_tr, X_ts, Y_ts
 
-def genData(dataset = "Sinc1", norm = False):
+
+def genWaveform():
+    file = dirData + 'BANANA'
+    data = np.loadtxt(file)
+    # Seperate to input and output
+    train_data = data[0:400, :]
+    test_data = data[400:1000, :]
+    X_tr = train_data[:, 0:2]
+    Y_tr = train_data[:,2] 
+    X_ts = test_data[:, 0:2]
+    Y_ts = test_data[:,2] 
+    return X_tr, Y_tr, X_ts, Y_ts
+    
+def genWaveform():
+    file = dirData + 'WAVEFORM'
+    data = np.loadtxt(file)
+    # Seperate to input and output
+    train_data = data[0:400, :]
+    test_data = data[400:1000, :]
+    X_tr = train_data[:, 0:21]
+    Y_tr = train_data[:,21] 
+    X_ts = test_data[:, 0:21]
+    Y_ts = test_data[:,21] 
+    return X_tr, Y_tr, X_ts, Y_ts
+
+def genDiabetes():
+    file1 = dirData + 'PimaDiabetesTrain'
+    file2 = dirData + 'PimaDiabetesTest'
+    train_data = np.loadtxt(file1)
+    test_data = np.loadtxt(file2)
+    # Seperate to input and output
+    X_tr = train_data[:, 0:7]
+    Y_tr = train_data[:,7] 
+    X_ts = test_data[:, 0:7]
+    Y_ts = test_data[:,7] 
+    return X_tr, Y_tr, X_ts, Y_ts
+      
+        
+def genRiplaySynthetic():
+    file1 = dirData + 'RiplaySynthetic250'
+    file2 = dirData + 'RiplaySynthetic1000'
+    train_data = np.loadtxt(file1)
+    test_data = np.loadtxt(file2)
+    # Seperate to input and output
+    X_tr = train_data[:, 0:2]
+    Y_tr = train_data[:,2]
+    X_ts = test_data[:, 0:2]
+    Y_ts = test_data[:,2] 
+    return X_tr, Y_tr, X_ts, Y_ts
+
+
+def genData(dataset = "Sinc1"):
     if dataset == "Sinc1":
-        return genSinc1(norm = norm)
+        return genSinc1()
     elif dataset == "Sinc2":
-        return genSinc2(norm = norm)
+        return genSinc2()
     elif dataset == "F1":
-        return genFriedman1(norm = norm)
+        return genFriedman1()
     elif dataset == "F2":
-        return genFriedman2(norm = norm)
+        return genFriedman2()
     elif dataset == "F3":
-        return genFriedman3(norm = norm)
+        return genFriedman3()
     elif dataset == "Boston":
-        return genBoston(norm = norm)
+        return genBoston()
+    elif dataset == "Banana":
+        return genBanana()
+    elif dataset == "Diabetes":
+        return genDiabetes()
+    elif dataset == "RiplaySynthetic":
+        return genRiplaySynthetic()
+    elif dataset == "WAVEFORM":
+        return genWaveform()
     else:
         print("Possible datasets: \n" + \
                   + "\t Sinc1" + \
@@ -183,5 +242,8 @@ def genData(dataset = "Sinc1", norm = False):
                   + "\t F1" + \
                   + "\t F2" + \
                   + "\t F3" + \
-                  + "\t Boston")
+                  + "\t Boston" + \
+                  + "\t Diabetes" + \
+                  + "\t WAVEFORM" + \
+                  + "\t Banana")
         return -1
