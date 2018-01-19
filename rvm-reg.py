@@ -226,10 +226,14 @@ def optimizeMarginalLikelihoodParams(dataset, t, kernelType):
 # Implementation of the Sequential Sparse Bayesian Learning Algorithm in
 # Bishop p. 352-353
 def main():
-    dataset = np.linspace(-2,2,20)
-    t = createLabels(dataset)
+    trainingDataset = np.linspace(-2,2,20)
+    t = createLabels(trainingDataset)
 
-    alphaVec, beta, designMatrix = optimizeMarginalLikelihoodParams(dataset,t,"pol")
+    alphaVec, beta, designMatrix = optimizeMarginalLikelihoodParams(trainingDataset,t,"pol")
+    testingDataset = np.linspace(-4,4,100)
+    testingLabels = createLabels(testingDataset)
+    modelPredictions = [np.dot()]
+
 
 
 
