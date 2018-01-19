@@ -214,19 +214,19 @@ def genRiplaySynthetic():
     return X_tr, Y_tr, X_ts, Y_ts
 
 
-def genData(dataset = "Sinc1"):
+def genData(dataset = "Sinc1", norm = False):
     if dataset == "Sinc1":
-        return genSinc1()
+        return genSinc1(norm = norm)
     elif dataset == "Sinc2":
-        return genSinc2()
+        return genSinc2(norm = norm)
     elif dataset == "F1":
-        return genFriedman1()
+        return genFriedman1(norm = norm)
     elif dataset == "F2":
-        return genFriedman2()
+        return genFriedman2(norm = norm)
     elif dataset == "F3":
-        return genFriedman3()
+        return genFriedman3(norm = norm)
     elif dataset == "Boston":
-        return genBoston()
+        return genBoston(norm = norm)
     elif dataset == "Banana":
         return genBanana()
     elif dataset == "Diabetes":
