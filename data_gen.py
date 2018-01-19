@@ -164,7 +164,7 @@ def genBoston(norm = True):
     return X_tr, Y_tr, X_ts, Y_ts
 
 
-def genWaveform():
+def genBanana():
     file = dirData + 'BANANA'
     data = np.loadtxt(file)
     # Seperate to input and output
