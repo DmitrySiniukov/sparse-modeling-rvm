@@ -47,7 +47,7 @@ class RVM_reg:
     EPSILON_CONV = 1e-6
     EPSILON_UF = 1e-30
     TH_RV = 1e5
-    INFINITY = 1e20
+    INFINITY = 1e5
     maxEpochs = 5000
     
     def __init__(self, kerType = 'poly', rvmType = "EM", p = 1, sigma = 1, 
