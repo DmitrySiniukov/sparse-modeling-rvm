@@ -51,18 +51,25 @@ def genSinc2(norm = True):
         X_ts = (X_ts - mean) / (2 * std + eps)
     return X_tr, Y_tr, X_ts, Y_ts
 
-def Friedman1(N):
+
+def Friedman1(N, norm = True):
+    eps = 1e-30
     x1 = x2 = x3 = x4 = x5 = np.linspace(0, 1, num = N)
+    x_rest = np.linspace(0, 1, num = N)
     y = 10*np.sin(np.pi*x1*x2) + 20*(x3 - 0.5)**2 \
         + 10*x4 + 5*x5
-    x = np.zeros((N,5))
+    x = np.zeros((N,10))
     x[:,0] = x1
     x[:,1] = x2
     x[:,2] = x3
     x[:,3] = x4
     x[:,4] = x5
+    x[:,5] = x[:,6] = x[:,7] = x[:,8] = x[:,9] = x_rest
     sigma = np.sqrt(np.var(y)) / 3
     y = y + np.random.normal(loc = 0, scale = sigma, size = N)
+    if norm == True:
+        y = y / np.abs(np.max(y) + eps)
+    print(np.max(y))
     return x,y
 
 def genFriedman1(norm = True):
