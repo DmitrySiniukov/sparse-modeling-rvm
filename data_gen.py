@@ -19,9 +19,8 @@ def Sinc1(N, x0, xN, sigma):
     y = np.sin(x) / (x + eps) + np.random.normal(loc = 0, scale = sigma, size = N)
     return x, y
 
-def genSinc1(norm = True):
+def genSinc1(norm = True, N_tr = 100):
     eps = 1e-30
-    N_tr = 100
     N_tst = 1000
     X_tr, Y_tr = Sinc1(N_tr, -10, 10, 0.1)
     X_ts, Y_ts = Sinc1(N_tst, -10, 10, 0.1)
@@ -148,8 +147,6 @@ def genBoston(norm = True):
     boston_housing = skdata.load_boston()
     x = boston_housing.data
     y = boston_housing.target
-    if norm == True:
-        y = y / np.abs(np.max(y) + eps)
     N = np.shape(x)[0]
     indices = np.arange(0,N)
     random.shuffle(indices)
@@ -221,9 +218,9 @@ def genRiplaySynthetic():
     return X_tr, Y_tr, X_ts, Y_ts
 
 
-def genData(dataset = "Sinc1", norm = False):
+def genData(dataset = "Sinc1", norm = False, N_tr = 100):
     if dataset == "Sinc1":
-        return genSinc1(norm = norm)
+        return genSinc1(norm = norm, N_tr = N_tr)
     elif dataset == "Sinc2":
         return genSinc2(norm = norm)
     elif dataset == "F1":
