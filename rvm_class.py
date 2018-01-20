@@ -344,13 +344,17 @@ class RVM_reg:
                 q = (alpha_values * Q) / denom
             ##print(epoch)
             # We store the relevance vectors and other important variables
-            self.X_sv = X_tr[included_cond[1:N+1]]
-            self.Y_sv = Y_tr[included_cond[1:N+1]]
-            self.mu = mu
-            self.Sigma = Sigma
+            alpha_values = alpha_values[included_cond]
+            X_tr = X_tr[included_cond[1:N+1]]
+            Y_tr = Y_tr[included_cond[1:N+1]]
+            
+            cond_sv = alpha_values < self.TH_RV
+            self.X_sv = X_tr[cond_sv[1:N+1]]
+            self.Y_sv = Y_tr[cond_sv[1:N+1]]
+            self.mu = mu[cond_sv]
+            self.Sigma = Sigma[cond_sv][:,cond_sv]
             self.sigma_squared = sigma_squared
-            
-            
+                   
         self.bTrained = True
     
     def pred(self, X):
