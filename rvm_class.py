@@ -251,7 +251,7 @@ class RVM_reg:
             alpha_values = np.zeros(N + 1) + self.INFINITY
             basis_column = K[:,0]
             phi_norm = np.linalg.norm(basis_column)
-            alpha_values[0] = phi_norm **2 / ((np.linalg.norm(basis_column.dot(Y_tr)) ** 2)                                           / (phi_norm ** 2) - sigma_squared)
+            alpha_values[0] = (phi_norm **2) / ((np.linalg.norm(basis_column.dot(Y_tr)) ** 2)                                           / (phi_norm ** 2) - sigma_squared)
             included_cond = np.zeros(N + 1, dtype=bool)
             included_cond[0] = True
             
@@ -348,9 +348,15 @@ class RVM_reg:
             X_tr = X_tr[included_cond[1:N+1]]
             Y_tr = Y_tr[included_cond[1:N+1]]
             
+            
             cond_sv = alpha_values < self.TH_RV
-            self.X_sv = X_tr[cond_sv[1:N+1]]
-            self.Y_sv = Y_tr[cond_sv[1:N+1]]
+            if alpha_values.shape[0] != X_tr.shape[0]:
+                self.X_sv = X_tr[cond_sv[1:N+1]]
+                self.Y_sv = Y_tr[cond_sv[1:N+1]]
+            else:
+                self.X_sv = X_tr[cond_sv]
+                self.Y_sv = Y_tr[cond_sv]
+                
             self.mu = mu[cond_sv]
             self.Sigma = Sigma[cond_sv][:,cond_sv]
             self.sigma_squared = sigma_squared
