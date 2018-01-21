@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[139]:
+# In[1]:
 
 
 import numpy as np
@@ -23,7 +23,7 @@ import time
 dataDir = "./Data/"
 
 
-# In[147]:
+# In[2]:
 
 
 def plotData(x, t):
@@ -38,7 +38,7 @@ def plotData(x, t):
     plt.show()
 
 
-# In[144]:
+# In[3]:
 
 
 def normalizeLabels(X, t):
@@ -57,7 +57,7 @@ def normalizeLabels(X, t):
     return np.array(result_X), np.array(result_t)
 
 
-# In[158]:
+# In[4]:
 
 
 # x_tr: feature vectors of training dataset
@@ -88,25 +88,25 @@ def plotClassification(x_tr, t_tr, x_tst, t_tst, x_sv):
 
     plt.plot(classA_tst[:,0], classA_tst[:,1], 'bs', alpha=0.05)
     plt.plot(classB_tst[:,0], classB_tst[:,1], 'rs', alpha=0.05)
-    #plt.savefig('toy_example_RVM_C.pdf', bbox_inches='tight')
+    #plt.savefig('toy_example_RVM_C.pdf')
     plt.show()
 
 
-# In[121]:
+# In[5]:
 
 
 def radialKernel(X1, X2, params):
     return laplacian_kernel(X1, X2, params[0])
 
 
-# In[105]:
+# In[6]:
 
 
 def linearKernel(X1, X2, params = None):
     return linear_kernel(X1, X2)
 
 
-# In[107]:
+# In[7]:
 
 
 def polynomialKernel(X1, X2, params):
@@ -114,14 +114,14 @@ def polynomialKernel(X1, X2, params):
     return polynomial_kernel(X1, X2, degree)
 
 
-# In[127]:
+# In[8]:
 
 
 def sigmoidKernel(X1, X2, params = None):
     return sigmoid_kernel(X1, X2)
 
 
-# In[111]:
+# In[9]:
 
 
 def gaussianKernel(X1, X2, params):
@@ -129,66 +129,143 @@ def gaussianKernel(X1, X2, params):
     return rbf_kernel(X1, X2, gamma)
 
 
-# In[161]:
-
-def ripley():
-    # Ripley toy example
-    X_tr, t_tr = genRipley()
-    X_tr, t_tr = normalizeLabels(X_tr, t_tr)
-    h = 70
-    x_0_min = np.min(X_tr[:,0])
-    x_0_max = np.max(X_tr[:,0])
-    x_1_min = np.min(X_tr[:,1])
-    x_1_max = np.max(X_tr[:,1])
-    xx0, xx1 = np.meshgrid(np.linspace(x_0_min, x_0_max, num=h), np.linspace(x_1_min, x_1_max, num=h))
-    X_tst = np.vstack((xx0.reshape(1,-1),xx1.reshape(1,-1))).T
-    #plotData(X_tr, t_tr)
-    kernel = gaussianKernel
-    kernelParams = [0.5]
-    X_res, alphas_res, w_res, Phi_res = RVM_C(X_tr, t_tr, kernel, kernelParams, update_fn = "DD", max_iter_num = 3000, opt_max_iter = 100)
-    prediction = predict(X_tst, X_res, w_res, kernel, kernelParams)
-    plotClassification(X_tr, t_tr, X_tst, prediction, X_res)
-
-
-# In[128]:
-
-def iris():
-    # Iris toy example
-    iris = load_iris()
-    X = []
-    t = []
-
-    for i in range(len(iris.data)):
-        if iris.target[i] == 1 or iris.target[i] == 2:
-            X.append(iris.data[i][:-2])
-            t.append((iris.target[i]-1)) # TODO: Identify unique labels, change to 0/1-format
-    X = np.array(X)
-    t = np.array(t)
-
-    h = 55
-    x_0_min = np.min(X[:,0])
-    x_0_max = np.max(X[:,0])
-    x_1_min = np.min(X[:,1])
-    x_1_max = np.max(X[:,1])
-    xx0, xx1 = np.meshgrid(np.linspace(x_0_min, x_0_max, num=h),
-                             np.linspace(x_1_min, x_1_max, num=h))
-    X_tst = np.vstack((xx0.reshape(1,-1),xx1.reshape(1,-1))).T
-
-    kernel = radialKernel
-    kernelParams = [7.5]
-    X_res, alphas_res, w_res, Phi_res = RVM_C(X, t, kernel, kernelParams, update_fn = "DD", max_iter_num = 1000, opt_max_iter = 100)
-    prediction = predict(X_tst, X_res, w_res, kernel, kernelParams)
-    plotClassification(X, t, X_tst, prediction, X_res)
-
-
-# In[60]:
+# In[10]:
 
 
 def fetchDataset(dataset):
     return data_gen.genData(dataset)
 
 
-# In[69]:
+# In[11]:
+
+
+# X: training feature vectors
+# t: training labels
+# kernel: function of the form "kernel(X1, X2, kernel_params)"
+# kern_params: params for the passed kernel function
+# returns: 
+def SSBL_RVM_C(X, t, kernel, kernelParams, update_fn = "DD", max_iter_num = 1000, opt_max_iter = 100, tolerance = 1e-5,
+          alpha_threshold = 1e6):
+
+    N = len(t)
+    Phi = kernel(X, X, kernelParams) #rbf_kernel(X, X, kern_param)
+    Phi = np.append(Phi, np.ones((N, 1)), axis = 1)
+    Phi_t = Phi.T
+    opt_options = { 'maxiter': opt_max_iter }
+    biasFlag = True
+    numLessTol = 0
+    w_mode = np.zeros(N+1)
+
+    # Initialize the variables
+    alphas = np.full(N+1, float("inf"))
+    firstPhiCol = Phi[:,0]
+    norm = np.sum(firstPhiCol*firstPhiCol)
+    norm_t = np.sum(firstPhiCol*t)
+    # Calculate var[t], sigma^2
+    t_mean = np.mean(t)
+    sigma_sq = 0.1*np.sum(np.fabs(t-t_mean))/(N-1)
+    alphas[0] = (norm)/((norm_t/norm)-sigma_sq)
+
+    basisVars = np.full(N+1, False)
+    basisVars[0] = True
+    basisPhi = Phi[:,basisVars]
+
+    order = np.arange(N+1)
+    B = np.zeros((N,N))
+    B_inv = np.zeros((N,N))
+    t_y = np.zeros(N)
+    
+    for iterNum in range(max_iter_num):
+        basisChanged = False
+        alphasDiff = 0
+        #np.random.shuffle(order)
+        for ind in order:
+            basisAlphas = alphas[basisVars]
+            basisPhi = Phi[:,basisVars]
+            w0 = w_mode[basisVars]
+            #try
+            #    opt_res = minimize(fun=getLogPosterior, x0=np.zeros(len(basisAlphas)), hess=getHessian, method='Newton-CG', \
+            #               args=(basisAlphas, basisPhi, basisPhi.T, t), jac=True, options=opt_options)
+            #except:
+            retryNum = 10
+            for i in range(1,retryNum):
+                try:
+                    opt_res = minimize(fun=getLogPosterior, x0=w0, hess=getHessian, method='Newton-CG',                         args=(basisAlphas, basisPhi, basisPhi.T, t), jac=True, options={ 'maxiter': opt_max_iter*i })
+                except:
+                    print("not converged")
+                    w0 = np.zeros(len(basisAlphas))
+                if i == retryNum-1:
+                    continue
+            
+            counter = 0
+            for i in range(N+1):
+                if (not basisVars[i]):
+                    w_mode[i] = 0
+                else:
+                    w_mode[i] = opt_res.x[counter]
+                    counter += 1
+            
+            Sigma_inv = getHessian(w_mode, alphas, Phi, Phi_t, t)
+            Sigma_basis_inv = Sigma_inv[:,basisVars]
+            Sigma_basis_inv = Sigma_basis_inv[basisVars,:]
+            Sigma_basis = np.linalg.inv(Sigma_basis_inv)
+            
+            phi_w = np.dot(Phi, w_mode)
+            y = expit(phi_w)
+            # Compute B, B^{-1}
+            for i in range(N):
+                t_y[i] = t[i]-y[i]
+                B[i][i] = y[i]*(1-y[i])
+                if (B[i][i] == 0):
+                    B_inv[i][i] = float("inf")
+                else:
+                    B_inv[i][i] = 1/B[i][i]
+            
+            phi_j = Phi[:,ind]
+            phi_B = np.dot(phi_j.T, B)
+            t_hat = phi_w + np.dot(B_inv,t_y)
+            long_product = np.dot(phi_B, basisPhi).dot(Sigma_basis).dot(basisPhi.T).dot(B)
+            S_j = np.dot(phi_B, phi_j) - np.dot(long_product, phi_j)
+            Q_j = np.dot(phi_B, t_hat) - np.dot(long_product, t_hat)
+            s_j = None
+            q_j = None
+            if (alphas[ind] > alpha_threshold):
+                s_j = S_j
+                q_j = Q_j
+            else:
+                s_j = (alphas[ind]*S_j)/(alphas[ind]-S_j)
+                q_j = (alphas[ind]*Q_j)/(alphas[ind]-S_j)
+                
+            if (q_j*q_j > s_j+tolerance):
+                if (alphas[ind] > alpha_threshold):
+                    basisVars[ind] = True
+                    basisChanged = True
+                alphaPrev = alphas[ind]
+                alphas[ind] = (s_j*s_j)/(q_j*q_j - s_j)
+                alphasDiff += np.fabs(alphas[ind]-alphaPrev)
+            else:
+                if (alphas[ind] < alpha_threshold):
+                    basisVars[ind] = False
+                    basisChanged = True
+                alphas[ind] = float("inf")
+            
+        if ((not basisChanged) and alphasDiff < tolerance):
+            print("converged")
+            break
+    
+    alphas_res = alphas[basisVars]
+    w_res = w_mode[basisVars]
+    Phi_res = Phi[:,basisVars]
+    X_res = X[basisVars[:-1],:]
+    
+    # X_res: features of the support vectors
+    # alphas_res: support vectors alphas
+    # w_res: optimal parameters' values
+    # Phi_res: Phi's of the support vectors
+    return X_res, alphas_res, w_res, Phi_res
+
+
+# In[12]:
 
 
 # This function filters out infinite alpha values and the columns of the design
@@ -244,7 +321,7 @@ def updateAlphaValue(designMatrix,alphaVec,postMean,t,postCov,threshHold, index)
         return math.inf
 
 
-# In[112]:
+# In[13]:
 
 
 # X: training feature vectors
@@ -252,7 +329,7 @@ def updateAlphaValue(designMatrix,alphaVec,postMean,t,postCov,threshHold, index)
 # kernel: function of the form "kernel(X1, X2, kernel_params)"
 # kern_params: params for the passed kernel function
 # returns: 
-def RVM_C(X, t, kernelType, kernelParams, update_fn = "DD", max_iter_num = 1000, opt_max_iter = 100, tolerance = 1e-7, alpha_threshold = 1e7):
+def RVM_C(X, t, kernel, kernelParams, update_fn = "DD", max_iter_num = 1000, opt_max_iter = 100, tolerance = 1e-7, alpha_threshold = 1e7):
 
     # Gamma prior variables:
     a = 0
@@ -260,10 +337,6 @@ def RVM_C(X, t, kernelType, kernelParams, update_fn = "DD", max_iter_num = 1000,
     c = 0
     d = 0 # These are all set to 0 since we, just like Tipping, assume uniform priors for the hyperparams
     
-    kernel = linearKernel
-    if kernelType == "radial":
-        kernel = radialKernel
-
     N = len(t)
     Phi = kernel(X, X, kernelParams) #rbf_kernel(X, X, kern_param)
     Phi = np.append(Phi, np.ones((N, 1)), axis = 1)
@@ -368,10 +441,11 @@ def RVM_C(X, t, kernelType, kernelParams, update_fn = "DD", max_iter_num = 1000,
     # Phi_res: Phi's of the support vectors
     return X_res, alphas_res, w_res, Phi_res
 
-def sparse_RVM_C(X, t, kernelType,update_fn = "DD", max_iter_num = 10000, opt_max_iter = 100, tolerance = 1e-7, alpha_threshold = 1e5):
+def sparse_RVM_C(X, t, kernel, kernelParams, update_fn = "DD", max_iter_num = 10000, opt_max_iter = 100, tolerance = 1e-7,
+                 alpha_threshold = 1e5):
 
     N = len(t)
-    Phi = kernel(X, X, kernelType) #rbf_kernel(X, X, kern_param)
+    Phi = kernel(X, X, kernelParams)
     Phi = np.append(Phi, np.ones((N, 1)), axis = 1)
     Phi_t = Phi.T
     opt_options = { 'maxiter': opt_max_iter }
@@ -381,7 +455,6 @@ def sparse_RVM_C(X, t, kernelType,update_fn = "DD", max_iter_num = 10000, opt_ma
     numRelevant = 1
     alphas = np.full(N+1, float('inf'))
     alphas[0] = 1e-6
-    
 
     alphas_res = None
     Phi_res = None
@@ -484,7 +557,7 @@ def sparse_RVM_C(X, t, kernelType,update_fn = "DD", max_iter_num = 10000, opt_ma
     return X_res, alphas_res, w_res, Phi_res
 
 
-# In[114]:
+# In[14]:
 
 
 def getLogPosterior(w, alphas, Phi, Phi_t, t):
@@ -497,7 +570,7 @@ def getLogPosterior(w, alphas, Phi, Phi_t, t):
             continue
         res += np.log(1-y[i])
     diagAlphas = np.diag(alphas)
-    res -= 0.5 * np.dot(w.T, np.dot(diagAlphas, w)) #Decimal(0.5)*(np.dot(np.dot(w.T, A), w))
+    res -= 0.5 * np.dot(w.T, np.dot(diagAlphas, w))
     func_prime = np.dot(np.diag(alphas), w) - np.dot(Phi.T, (t-y))
     # Invert for finding maximum
     return -res, func_prime
@@ -509,14 +582,11 @@ def getHessian(w, alphas, Phi, Phi_t, t):
     return np.diag(alphas) + np.dot(Phi.T, np.dot(B, Phi))
 
 
-# In[113]:
+# In[15]:
 
 
 # Get prediction labels
-def predict(X_test, X_res, w_res, kernelType, kernelParams):
-    kernel = linearKernel
-    if kernelType == "radial":
-        kernel = radialKernel
+def predict(X_test, X_res, w_res, kernel, kernelParams):
     Phi = kernel(X_test, X_res, kernelParams)
     if (np.shape(Phi)[1] != np.shape(w_res)[0]):
         Phi = np.append(Phi, np.ones((np.shape(Phi)[0], 1)), axis = 1)
@@ -527,7 +597,7 @@ def predict(X_test, X_res, w_res, kernelType, kernelParams):
     return res
 
 
-# In[154]:
+# In[ ]:
 
 
 def genRipley():
@@ -548,22 +618,26 @@ def genRipley():
     return X, Y
 
 
-# In[130]:
+# In[ ]:
 
 def main():
     start = time.clock()
-    kernels = [linearKernel, radialKernel, polynomialKernel, sigmoidKernel, gaussianKernel]
-    kernelParams = [ [None], [7.5], [2], [None], [1] ]
-    kernelTitles = ["linear", "radial", "polynomial", "sigmoid", "Gaussian"]
-    datasets = ["RiplaySynthetic", "WAVEFORM"]
+    kernels = [radialKernel]
+    kernelParams = [[7.5]]
+    kernelTitles = ["radial"]
+    datasets = ["RiplaySynthetic", "WAVEFORM","Banana"]
     for dataset in datasets:
+        if dataset == "RiplaySynthetic":
+            kernelParams[0] = [3.5]
+        else:
+            kernelParams[0] = 0.5
         print("Dataset: "+dataset+'\n')
         X_tr, Y_tr, X_ts, Y_ts = fetchDataset(dataset)
         for i in range(len(kernels)):
             kernel = kernels[i]
             kernelPars = kernelParams[i]
             print("Kernel type: " + kernelTitles[i])
-            X_res, alphas_res, w_res, Phi_res = RVM_C(X_tr, Y_tr, kernel, kernelPars, update_fn = "DD", max_iter_num = 3000, opt_max_iter = 100)
+            X_res, alphas_res, w_res, Phi_res = SSBL_RVM_C(X_tr, Y_tr, kernel, kernelPars, update_fn = "DD", max_iter_num = 3000, opt_max_iter = 100)
             trainingTime = time.clock() - start
             print("Training time: "+ str(trainingTime))
 
@@ -573,5 +647,9 @@ def main():
             print("Number of relevance vectors: "+str(X_res.shape[0])+'\n')
         print("-----------------------------------------------------------------")
 
-    #plotClassification(X_tr, Y_tr, X_ts, prediction, X_res)
+#plotClassification(X_tr, Y_tr, X_ts, prediction, X_res)
+
+
+# In[ ]:
+
 
