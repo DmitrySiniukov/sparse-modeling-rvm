@@ -1,9 +1,6 @@
 
 # coding: utf-8
 
-# In[331]:
-
-
 # Import of the packages
 import numpy as np
 import scipy.optimize as optimize
@@ -13,17 +10,9 @@ import scipy.stats as sts
 from collections import deque
 from numpy import linalg
 
-
-# In[332]:
-
-
 class ParameterValueError(Exception):
     """ Custom exception raised when a parameter has an invalid value."""
     pass
-
-
-# In[3]:
-
 
 # RVM class
 class RVM_reg:
