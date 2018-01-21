@@ -185,9 +185,8 @@ def calculateMarginalLogLikelihood(alphaVec, beta, designMatrix, t):
     logProb += np.transpose(t)*np.linalg.inv(likelihoodCov)*t
     logProb += N*np.log(2*math.pi)
     logProb *=-1/2
-    print("Updated marginal likelihood:")
-    print(logProb)
     return logProb
+
 
 def convergenceReached(newLogProb,oldLogProb):
     return newLogProb/oldLogProb < math.pow(10,-6)
@@ -199,6 +198,26 @@ def optimizeMarginalLikelihoodParams(dataset, t, kernelType):
 
     s0, q0 = getqiAndsiAlterativeMethod(alphaVec,beta,designMatrix,t,0)
     alphaVec[0] = updateAlphaI(s0,q0)
+<<<<<<< HEAD
+
+    oldLogLikelihood = math.pow(10,-6)
+    newLogLikelihood = 1.
+    while True:
+        for i in range(len(alphaVec)):
+            if convergenceReached(newLogLikelihood,oldLogLikelihood):
+                usdAlphaVec, usdDsgnMtx = filterOutInf(alphaVec,designMatrix)
+                return usdAlphaVec, beta, usdDsgnMtx
+
+            posteriorMean, posteriorCov = getPosteriorMeanAndCov(alphaVec,beta,designMatrix,t)
+            oldAlphaVec = alphaVec
+
+            qi, si = getqiAndsi(alphaVec, beta, designMatrix,posteriorCov,t,i)
+            if qi**2 > si:
+                alphaVec[i] = updateAlphaI(si,qi)
+            else:
+                alphaVec[i] = math.inf
+
+=======
 
     oldLogLikelihood = math.pow(10,-6)
     newLogLikelihood = 1.
@@ -217,6 +236,7 @@ def optimizeMarginalLikelihoodParams(dataset, t, kernelType):
             else:
                 alphaVec[i] = math.inf
 
+>>>>>>> 79ae4f48fafe84143382a1f203942bce821d2d18
             beta = updateBeta(alphaVec,designMatrix,posteriorMean,posteriorCov,t)
 
             oldLogLikelihood = newLogLikelihood
@@ -228,6 +248,9 @@ def main():
     trainingDataset = np.linspace(-2,2,20)
     t = createLabels(trainingDataset)
 
+<<<<<<< HEAD
+    alphaVec, beta, designMatrix = optimizeMarginalLikelihoodParams(dataset,t,"pol")
+=======
     posteriorMean, posteriorCov = optimizeMarginalLikelihoodParams(trainingDataset,t,"pol")
     testingDataset = np.linspace(-4,4,100)
     testingLabels = createLabels(testingDataset)
@@ -236,6 +259,7 @@ def main():
 
     plt.plot(testingDataset,testingLabels,color='blue')
 
+>>>>>>> 79ae4f48fafe84143382a1f203942bce821d2d18
 
 
 
