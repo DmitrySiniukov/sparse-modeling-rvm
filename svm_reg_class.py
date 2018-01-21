@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import math
 import scipy.stats as sts
 
+__author__ = "Borja Rodriguez Galvez and Matthaios Stylianidis"
+
+
 class ParameterValueError(Exception):
     """ Custom exception raised when a parameter has an invalid value."""
     pass
