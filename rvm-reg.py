@@ -5,6 +5,7 @@
 # TODO Convert to classification algorithm
 import numpy as np
 import math
+import matplotlib.pyplot as plt
 
 def linearBasisFunction(datapoint):
     return datapoint
@@ -186,11 +187,8 @@ def calculateMarginalLogLikelihood(alphaVec, beta, designMatrix, t):
     logProb *=-1/2
     return logProb
 
+
 def convergenceReached(newLogProb,oldLogProb):
-    print("newLogProb:")
-    print(newLogProb.shape)
-    print("oldLogProb:")
-    print(oldLogProb)
     return newLogProb/oldLogProb < math.pow(10,-6)
 
 def optimizeMarginalLikelihoodParams(dataset, t, kernelType):
@@ -200,6 +198,7 @@ def optimizeMarginalLikelihoodParams(dataset, t, kernelType):
 
     s0, q0 = getqiAndsiAlterativeMethod(alphaVec,beta,designMatrix,t,0)
     alphaVec[0] = updateAlphaI(s0,q0)
+<<<<<<< HEAD
 
     oldLogLikelihood = math.pow(10,-6)
     newLogLikelihood = 1.
@@ -218,6 +217,26 @@ def optimizeMarginalLikelihoodParams(dataset, t, kernelType):
             else:
                 alphaVec[i] = math.inf
 
+=======
+
+    oldLogLikelihood = math.pow(10,-6)
+    newLogLikelihood = 1.
+    while True:
+        for i in range(len(alphaVec)):
+            posteriorMean, posteriorCov = getPosteriorMeanAndCov(alphaVec,beta,designMatrix,t)
+
+            if convergenceReached(newLogLikelihood,oldLogLikelihood):
+                return posteriorMean, posteriorCov
+
+            oldAlphaVec = alphaVec
+
+            qi, si = getqiAndsi(alphaVec, beta, designMatrix,posteriorCov,t,i)
+            if qi**2 > si:
+                alphaVec[i] = updateAlphaI(si,qi)
+            else:
+                alphaVec[i] = math.inf
+
+>>>>>>> 79ae4f48fafe84143382a1f203942bce821d2d18
             beta = updateBeta(alphaVec,designMatrix,posteriorMean,posteriorCov,t)
 
             oldLogLikelihood = newLogLikelihood
@@ -226,10 +245,21 @@ def optimizeMarginalLikelihoodParams(dataset, t, kernelType):
 # Implementation of the Sequential Sparse Bayesian Learning Algorithm in
 # Bishop p. 352-353
 def main():
-    dataset = np.linspace(-2,2,20)
-    t = createLabels(dataset)
+    trainingDataset = np.linspace(-2,2,20)
+    t = createLabels(trainingDataset)
 
+<<<<<<< HEAD
     alphaVec, beta, designMatrix = optimizeMarginalLikelihoodParams(dataset,t,"pol")
+=======
+    posteriorMean, posteriorCov = optimizeMarginalLikelihoodParams(trainingDataset,t,"pol")
+    testingDataset = np.linspace(-4,4,100)
+    testingLabels = createLabels(testingDataset)
+    kernelizedData = createDesignMatrixKernel(testingDataset,"pol")
+    modelPredictions = [np.dot(posteriorMean.T,kernelizedData)]
+
+    plt.plot(testingDataset,testingLabels,color='blue')
+
+>>>>>>> 79ae4f48fafe84143382a1f203942bce821d2d18
 
 
 
