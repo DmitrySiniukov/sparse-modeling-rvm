@@ -1,3 +1,5 @@
+_author_      = "Dmitry""
+
 # Import of the packages
 import numpy as np
 import random as rnd
