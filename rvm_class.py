@@ -1,6 +1,3 @@
-
-# coding: utf-8
-
 # Import of the packages
 import numpy as np
 import scipy.optimize as optimize
@@ -9,6 +6,8 @@ import math
 import scipy.stats as sts
 from collections import deque
 from numpy import linalg
+
+__author__ = "Borja Rodriguez Galvez and Matthaios Stylianidis"
 
 class ParameterValueError(Exception):
     """ Custom exception raised when a parameter has an invalid value."""
