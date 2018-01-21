@@ -1,9 +1,3 @@
-
-# coding: utf-8
-
-# In[1]:
-
-
 # Import of the packages
 import numpy as np
 import scipy.optimize as optimize
@@ -11,32 +5,18 @@ import matplotlib.pyplot as plt
 import math
 import scipy.stats as sts
 
-
-# In[2]:
-
-
 class ParameterValueError(Exception):
     """ Custom exception raised when a parameter has an invalid value."""
     pass
-
-
-# In[3]:
-
 
 class FailedOptimizationError(Exception):
     """ Custom exception raised when a the optimization process fails."""
     pass
 
-
-# In[4]:
-
-
 class UntrainedModelError(Exception):
     """ Custom exception raised when an untrained model is called to make predictions."""
     pass
 
-
-# In[1]:
 
 
 # SVM class
