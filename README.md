@@ -4,7 +4,7 @@ This repository includes the implementation of SVM and RVM for both regression a
 
 Regarding the SVM both the conventional ε-SVM and v-SVM have been implemented. 
 
-For the RVM, to learn the hyperparameters we have implemented an EM update rule and the direct differentiation rule as it is describe by Tipping's patent in [1]. We also implemented the sparse bayesian learning learning algorithm based on [2].
+For the RVM, to learn the hyperparameters we have implemented an EM update rule and the direct differentiation rule as it is described by Tipping's patent in [1]. We also implemented the sparse bayesian learning learning algorithm based on [2].
 
 
 ## Files in repository
