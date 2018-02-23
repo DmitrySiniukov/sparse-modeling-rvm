@@ -11,8 +11,11 @@ For the RVM, to learn the hyperparameters we have implemented an EM update rule 
 data_gen: this python file contains functions that generate or read the datasets from their respective files in the Data folder and prepare it for use by the machine learning models.
 
 RVM_Classification: RVM for classification.
+
 rvm_class: RVM for regression
+
 svm_clas_class: SVM for classification
+
 svm_reg_class: SVM for regression
 
 
@@ -20,4 +23,5 @@ svm_reg_class: SVM for regression
 
 
 [1]. Tipping, M., Microsoft Corp, 2003. Relevance vector machine. U.S. Patent 6,633,857.
+
 [2]. Tipping, M.E. and Faul, A.C., 2003, January. Fast marginal likelihood maximisation for sparse Bayesian models. In AISTATS.
